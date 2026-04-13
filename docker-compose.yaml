@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # CONTENTOR 1: SERVIÇO WEB
+  web-app:
+    build:./web-app
+    container_name: web-app-aaualg
+    ports:
+      - "8080:3000" # Acesso público via browser
+    environment:
+      - DB_HOST=db-ementas
+      - AUTH_SERVICE_URL=http://iam-auth:4000
+    networks:
+      - frontend-net
+      - backend-net
+    depends_on:
+      - db-ementas
+      - iam-auth
+
+  # CONTENTOR 2: DB EMENTAS
+  db-ementas:
+    image: mariadb:latest
+    container_name: db-ementas-container
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_EMENTAS_NAME}
+    volumes:
+      - ementas-data:/var/lib/mysql
+      -./db-ementas/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend-net
+
+  # CONTENTOR 3: IAM / AUTH
+  iam-auth:
+    build:./iam-auth
+    container_name: iam-auth-container
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_AUTH_NAME}
+    volumes:
+      - auth-data:/var/lib/mysql
+      -./iam-auth/init-auth.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend-net
+
+networks:
+  frontend-net:
+    driver: bridge
+  backend-net:
+    internal: true # ISOLAMENTO: Só os contentores falam entre si [3, 4]
+
+volumes:
+  ementas-data:
+  auth-data:

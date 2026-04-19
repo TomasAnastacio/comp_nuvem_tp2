@@ -18,4 +18,4 @@ FLUSH PRIVILEGES;
 -- Injeção do Administrador (Email: admin | Password: admin)
 -- A string gerada pelo bcrypt abaixo corresponde à palavra "admin"
 INSERT INTO users (email, password_hash, role) 
-VALUES ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin');
+VALUES ('admin', '$2b$10$wPH94TJkGdofzMF4xUmQv.ogYk03hqH5cu00ScSmstaBZGLTSGW2y', 'admin');

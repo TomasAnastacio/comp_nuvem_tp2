@@ -1,14 +1,14 @@
 const jwtToken = localStorage.getItem('aaualg_token');
 
-// 1. Blindagem: Se não tem token, é expulso para a página principal
+// Bloqueio quando não há token JWT válido
 if (!jwtToken) {
     window.location.href = '/';
 }
 
-// 2. Navegação em Tabs (Pratos vs Ementas)
 document.getElementById('tab-pratos').addEventListener('click', (e) => trocarAba(e, 'panel-pratos'));
 document.getElementById('tab-ementas').addEventListener('click', (e) => trocarAba(e, 'panel-ementas'));
 
+// Tabs
 function trocarAba(evento, panelId) {
     document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -16,16 +16,15 @@ function trocarAba(evento, panelId) {
     document.getElementById(panelId).classList.add('active');
 }
 
-// 3. Logout
+// Logout
 document.getElementById('logout-btn').addEventListener('click', () => {
     localStorage.removeItem('aaualg_token');
     window.location.href = '/';
 });
 
-// Variável global para guardar o catálogo carregado
 let pratosCatalogo = [];
 
-// 4. Carregar os Pratos da Base de Dados
+// Carregar os Pratos da Base de Dados
 async function carregarPratosAdmin() {
     try {
         const res = await fetch('/api/pratos', {
@@ -43,13 +42,13 @@ async function carregarPratosAdmin() {
                     <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">${p.descricao || 'Sem descrição'}</div>
                 </div>
                 <div>
-                    <button onclick="prepararEdicao(${p.id})" style="background-color: #f0ad4e; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-right: 5px;">✏️ Editar</button>
-                    <button onclick="eliminarPrato(${p.id})" style="background-color: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">🗑️ Eliminar</button>
+                    <button onclick="prepararEdicao(${p.id})" style="background-color: #f0ad4e; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-right: 5px;">Editar</button>
+                    <button onclick="eliminarPrato(${p.id})" style="background-color: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Eliminar</button>
                 </div>
             </li>`).join('');
         document.getElementById('lista-todos-pratos').innerHTML = listaHtml;
 
-        // Renderizar checkboxes para criar ementas
+        // checkboxes para criar ementas
         const gridHtml = pratosCatalogo.map(p => `
             <label class="prato-check">
                 <input type="checkbox" name="pratos_selecionados" value="${p.id}">
@@ -63,7 +62,7 @@ async function carregarPratosAdmin() {
     }
 }
 
-// 5. Preparar Formulário para Edição
+// Preparar Formulário para Edição
 window.prepararEdicao = function(id) {
     const prato = pratosCatalogo.find(p => p.id === id);
     if (!prato) return;
@@ -75,7 +74,7 @@ window.prepararEdicao = function(id) {
     document.getElementById('prato-tipo').value = prato.tipo;
 
     // Alterar o aspeto do formulário
-    document.getElementById('form-prato-titulo').innerText = '✏️ Editar Prato';
+    document.getElementById('form-prato-titulo').innerText = 'Editar Prato';
     document.getElementById('btn-guardar-prato').innerText = 'Atualizar Prato';
     document.getElementById('btn-cancelar-edicao').style.display = 'inline-block';
     
@@ -83,16 +82,16 @@ window.prepararEdicao = function(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// 6. Cancelar Edição
+// Cancelar Edição
 document.getElementById('btn-cancelar-edicao').addEventListener('click', () => {
     document.getElementById('novo-prato-form').reset();
     document.getElementById('prato-id').value = '';
-    document.getElementById('form-prato-titulo').innerText = '+ Adicionar Novo Prato';
+    document.getElementById('form-prato-titulo').innerText = 'Adicionar Novo Prato';
     document.getElementById('btn-guardar-prato').innerText = 'Guardar';
     document.getElementById('btn-cancelar-edicao').style.display = 'none';
 });
 
-// 7. Salvar Prato (CRIAR ou ATUALIZAR)
+// Salvar Prato
 document.getElementById('novo-prato-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -125,7 +124,7 @@ document.getElementById('novo-prato-form').addEventListener('submit', async (e) 
     }
 });
 
-// 8. Eliminar Prato
+// Eliminar Prato
 window.eliminarPrato = async function(id) {
     if (!confirm('Tem a certeza que deseja eliminar este prato? Ele desaparecerá das ementas em que foi inserido.')) return;
 
@@ -146,7 +145,7 @@ window.eliminarPrato = async function(id) {
     }
 };
 
-// 9. Criar Ementa do Dia
+// Criar Ementa do Dia
 document.getElementById('nova-ementa-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     

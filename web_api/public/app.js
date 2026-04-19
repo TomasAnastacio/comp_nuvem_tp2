@@ -5,7 +5,7 @@
 const loginForm = document.getElementById('login-form');
 const listaEmentas = document.getElementById('lista-ementas');
 
-// 1. Fazer Login e Redirecionar para o Back-Office
+// Fazer Login e Redirecionar para o Back-Office
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -21,9 +21,9 @@ if (loginForm) {
             const data = await res.json();
 
             if (res.ok && data.token) {
-                // Sucesso! Guardar a "pulseira VIP" no browser
+                // Sucesso! Guardar o token no browser
                 localStorage.setItem('aaualg_token', data.token);
-                // Redirecionar imediatamente para a nova Fortaleza (Back-Office)
+                // Redirecionar para o Back-Office
                 window.location.href = '/admin.html';
             } else {
                 alert(data.error || 'Credenciais inválidas.');
@@ -35,7 +35,7 @@ if (loginForm) {
     });
 }
 
-// 2. Carregar e Renderizar as Ementas Públicas (Modo Acordeão)
+// Carregar e Renderizar as Ementas Públicas
 async function carregarEmentas() {
     try {
         const res = await fetch('/api/ementas');
@@ -50,7 +50,6 @@ async function carregarEmentas() {
         const ementasPorDia = {};
         data.forEach(row => {
             if (!ementasPorDia[row.dia_semana]) {
-                // Formatar a data (ex: 2026-04-13 -> 13/04/2026)
                 const dataFormatada = new Date(row.data).toLocaleDateString('pt-PT');
                 ementasPorDia[row.dia_semana] = { data: dataFormatada, pratos: [] };
             }
@@ -59,7 +58,7 @@ async function carregarEmentas() {
             }
         });
 
-        // Gerar o HTML Expansível (Accordion)
+        // Caixas com as ementas organizadas por dia
         let html = '';
         for (const [dia, info] of Object.entries(ementasPorDia)) {
             html += `
@@ -90,5 +89,5 @@ async function carregarEmentas() {
     }
 }
 
-// 3. Inicializar a página carregando as ementas
+// Inicializar a página carregando as ementas
 carregarEmentas();

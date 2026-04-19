@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 function verifyToken(req, res, next) {
-    // Procurar o token no cabeçalho de Autorização (padrão standard: "Bearer <token>")
+    // Procurar o Bearer token no cabeçalho de Autorização
     const bearerHeader = req.headers['authorization'];
 
     if (!bearerHeader) {
@@ -17,17 +17,17 @@ function verifyToken(req, res, next) {
         // Verifica criptograficamente a assinatura com a mesma chave do IAM API
         const decoded = jwt.verify(token, JWT_SECRET);
         
-        // Guardamos os dados do utilizador (incluindo o role) no pedido para as rotas usarem
+        // Guardamos os dados do utilizador (incluindo a role) no pedido para as rotas usarem
         req.user = decoded;
         
-        // Pode passar à próxima função (a rota do CRUD)
+        // Pode passar à próxima função, a rota do CRUD
         next();
     } catch (err) {
         return res.status(401).json({ error: 'Token inválido ou expirado.' });
     }
 }
 
-// Opcional mas muito valorizado: Middleware para garantir que só Admins inserem dados
+// Middleware para garantir que só Admins inserem dados
 function requireAdmin(req, res, next) {
     if (req.user && req.user.role === 'admin') {
         next();

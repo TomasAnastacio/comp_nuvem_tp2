@@ -46,7 +46,7 @@ app.get('/api/ementas', async (req, res) => {
 // ==========================================
 // 3. ROTAS PRIVADAS DA API (Back-Office CRUD)
 // ==========================================
-// Nota como usamos o verifyToken e requireAdmin como barreiras!
+
 app.post('/api/pratos', verifyToken, requireAdmin, async (req, res) => {
     const { nome, descricao, tipo } = req.body;
     
@@ -66,7 +66,7 @@ app.post('/api/pratos', verifyToken, requireAdmin, async (req, res) => {
     }
 });
 
-// Rota para listar todos os pratos (Atualizada para trazer a descrição)
+// Rota para listar todos os pratos
 app.get('/api/pratos', verifyToken, requireAdmin, async (req, res) => {
     try {
         const [rows] = await db.execute('SELECT id, nome, descricao, tipo FROM pratos ORDER BY nome ASC');
@@ -77,7 +77,7 @@ app.get('/api/pratos', verifyToken, requireAdmin, async (req, res) => {
     }
 });
 
-// Rota para EDITAR/ATUALIZAR um prato (NOVO)
+// Rota para EDITAR/ATUALIZAR um prato
 app.put('/api/pratos/:id', verifyToken, requireAdmin, async (req, res) => {
     const { id } = req.params;
     const { nome, descricao, tipo } = req.body;
@@ -102,7 +102,7 @@ app.put('/api/pratos/:id', verifyToken, requireAdmin, async (req, res) => {
     }
 });
 
-// Rota Avançada para Criar Ementa e associar múltiplos Pratos (Com Transação ACID)
+// Rota Avançada para Criar Ementa e associar múltiplos Pratos
 app.post('/api/ementas', verifyToken, requireAdmin, async (req, res) => {
     const { data, dia_semana, pratos_ids } = req.body;
     
@@ -148,7 +148,7 @@ app.post('/api/ementas', verifyToken, requireAdmin, async (req, res) => {
 // ==========================================
 app.post('/api/login', async (req, res) => {
     try {
-        // A web-api faz o pedido à iam_api através da rede interna do Docker!
+        // A web-api faz o pedido à iam_api através da rede interna do Docker
         const response = await fetch('http://iam_api:3000/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

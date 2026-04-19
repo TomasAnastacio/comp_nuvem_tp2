@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ementas AAUAlg - Gestão</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Bares AAUAlg - Ementa Semanal</h1>
+        <div id="auth-section">
+            <form id="login-form">
+                <input type="text" id="email" placeholder="Utilizador (ex: admin)" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">Entrar no Back-Office</button>
+            </form>
+            <button id="logout-btn" style="display: none;">Sair</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="ementas-publicas">
+            <h2>Ementa da Semana</h2>
+            <div id="lista-ementas">Carregando ementas...</div>
+        </section>
+
+        <section id="backoffice" style="display: none;">
+            <h2>Back-Office: Adicionar Novo Prato</h2>
+            <form id="prato-form">
+                <input type="text" id="prato-nome" placeholder="Nome do Prato (ex: Bacalhau com Natas)" required>
+                <input type="text" id="prato-desc" placeholder="Descrição" required>
+                <select id="prato-tipo" required>
+                    <option value="">Selecione o Tipo...</option>
+                    <option value="Carne">Carne</option>
+                    <option value="Peixe">Peixe</option>
+                    <option value="Vegetariano">Vegetariano</option>
+                    <option value="Vegan">Vegan</option>
+                </select>
+                <button type="submit">Guardar Prato</button>
+            </form>
+            <p id="admin-msg"></p>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

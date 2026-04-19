@@ -1,54 +1,87 @@
 version: '3.8'
 
 services:
-  # CONTENTOR 1: SERVIÇO WEB
-  web-app:
-    build:./web-app
-    container_name: web-app-aaualg
+  # 1. Painel de Controlo Visual (Gestão e Acesso Remoto)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
     ports:
-      - "8080:3000" # Acesso público via browser
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+  # 2. Base de Dados de Negócio (Contentor 2)
+  db_ementas:
+    image: mariadb:10.11
+    container_name: db_ementas
+    restart: always
+    env_file: .env
     environment:
-      - DB_HOST=db-ementas
-      - AUTH_SERVICE_URL=http://iam-auth:4000
+      - MYSQL_DATABASE=ementas_db
+    volumes:
+      - ementas_data:/var/lib/mysql
+      - ./db_ementas/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - frontend-net
-      - backend-net
+      - backend_net
+
+  # 3. Base de Dados de Autenticação (Parte do Contentor 3)
+  db_iam:
+    image: mariadb:10.11
+    container_name: db_iam
+    restart: always
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=auth_db
+    volumes:
+      - iam_data:/var/lib/mysql
+      - ./db_iam/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend_net
+
+  # 4. Microserviço IAM (Emissor de JWT - Parte do Contentor 3)
+  iam_api:
+    build: ./iam_api
+    container_name: iam_api
+    restart: on-failure
+    env_file: .env
     depends_on:
-      - db-ementas
-      - iam-auth
-
-  # CONTENTOR 2: DB EMENTAS
-  db-ementas:
-    image: mariadb:latest
-    container_name: db-ementas-container
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_EMENTAS_NAME}
-    volumes:
-      - ementas-data:/var/lib/mysql
-      -./db-ementas/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_iam
     networks:
-      - backend-net
+      - backend_net
 
-  # CONTENTOR 3: IAM / AUTH
-  iam-auth:
-    build:./iam-auth
-    container_name: iam-auth-container
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_AUTH_NAME}
-    volumes:
-      - auth-data:/var/lib/mysql
-      -./iam-auth/init-auth.sql:/docker-entrypoint-initdb.d/init.sql
+  # 5. Serviço Web Principal (Contentor 1 - Front-end + API)
+  web_api:
+    build: ./web_api
+    container_name: web_api
+    restart: on-failure
+    ports:
+      - "8080:8080" # Porta exposta ao público
+    env_file: .env
+    depends_on:
+      - db_ementas
+      - iam_api
     networks:
-      - backend-net
+      - backend_net
+
+  # 6. Interface de Bases de Dados (Exigência do enunciado)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOSTS=db_ementas,db_iam
+    networks:
+      - backend_net
 
 networks:
-  frontend-net:
+  backend_net:
     driver: bridge
-  backend-net:
-    internal: true # ISOLAMENTO: Só os contentores falam entre si [3, 4]
 
 volumes:
-  ementas-data:
-  auth-data:
+  portainer_data:
+  ementas_data:
+  iam_data:

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Controlo - Bares AAUAlg</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos específicos para o painel de administração */
+        .admin-layout { display: flex; gap: 2rem; margin-top: 2rem; }
+        .sidebar { width: 250px; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .sidebar button { width: 100%; margin-bottom: 10px; background: #eef2f5; color: #333; }
+        .sidebar button:hover, .sidebar button.active { background: #004d99; color: white; }
+        .content-area { flex-grow: 1; }
+        .panel { display: none; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .panel.active { display: block; }
+        .grid-pratos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 1rem; }
+        .prato-check { background: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gestão de Ementas - AAUAlg</h1>
+        <div>
+            <span style="margin-right: 15px;">👤 Administrador</span>
+            <button id="logout-btn" style="background-color: #d9534f;">Sair</button>
+        </div>
+    </header>
+
+    <div class="admin-layout" style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+        <nav class="sidebar">
+            <button id="tab-pratos" class="active">🍔 Gerir Pratos</button>
+            <button id="tab-ementas">📅 Criar Nova Ementa</button>
+        </nav>
+
+        <main class="content-area">
+            <section id="panel-pratos" class="panel active">
+                <h2>Catálogo de Pratos</h2>
+                
+                <form id="novo-prato-form" style="background: #f4f7f6; padding: 15px; border-radius: 6px; margin-bottom: 2rem;">
+                    <h3 id="form-prato-titulo">+ Adicionar Novo Prato</h3>
+                    
+                    <input type="hidden" id="prato-id" value="">
+                    
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="prato-nome" placeholder="Nome do Prato" required style="flex: 2; min-width: 200px;">
+                        <input type="text" id="prato-desc" placeholder="Descrição (opcional)" style="flex: 2; min-width: 200px;">
+                        <select id="prato-tipo" required style="flex: 1; min-width: 120px;">
+                            <option value="">Tipo...</option>
+                            <option value="Carne">Carne</option>
+                            <option value="Peixe">Peixe</option>
+                            <option value="Vegetariano">Vegetariano</option>
+                            <option value="Vegan">Vegan</option>
+                        </select>
+                        <button type="submit" id="btn-guardar-prato">Guardar</button>
+                        <button type="button" id="btn-cancelar-edicao" style="display: none; background-color: #888;">Cancelar</button>
+                    </div>
+                </form>
+
+                <h3>Lista de Pratos Existentes</h3>
+                <ul id="lista-todos-pratos" style="list-style: none; padding: 0;"></ul>
+            </section>
+
+            <section id="panel-ementas" class="panel">
+                <h2>Definir Ementa do Dia</h2>
+                <form id="nova-ementa-form">
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <input type="date" id="ementa-data" required>
+                        <select id="ementa-dia" required>
+                            <option value="">Dia da Semana...</option>
+                            <option value="Segunda-feira">Segunda-feira</option>
+                            <option value="Terça-feira">Terça-feira</option>
+                            <option value="Quarta-feira">Quarta-feira</option>
+                            <option value="Quinta-feira">Quinta-feira</option>
+                            <option value="Sexta-feira">Sexta-feira</option>
+                        </select>
+                    </div>
+                    
+                    <h3>Selecione os Pratos para este dia:</h3>
+                    <div id="grid-selecao-pratos" class="grid-pratos">
+                        </div>
+                    
+                    <button type="submit" style="margin-top: 20px; width: 100%; font-size: 1.1rem; padding: 10px;">Publicar Ementa</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

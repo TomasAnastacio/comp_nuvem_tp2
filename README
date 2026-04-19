@@ -1,0 +1,107 @@
+# Projeto de Gestão de Ementas AAUAlg - Arquitetura de Microserviços
+
+Este projeto foi desenvolvido como componente prática para a unidade curricular de Computação em Nuvem (TP2). A solução implementa um sistema de gestão de ementas semanais para os bares da Associação Académica da Universidade do Algarve, utilizando uma arquitetura baseada em microserviços, isolamento de dados e autenticação segura.
+
+---
+
+## 1. Arquitetura da Infraestrutura
+
+A solução foi desenhada para garantir a separação de responsabilidades e o isolamento de componentes críticos. A infraestrutura é orquestrada via Docker, composta por seis contentores que comunicam através de uma rede privada virtual.
+
+### Diagrama de Fluxo e Rede 
+
+```mermaid
+graph TD
+    subgraph Host_OS [Sistema Operativo Host - Windows/WSL2]
+        Browser[Navegador Web do Utilizador]
+    end
+
+    subgraph Docker_Network [Rede Privada Docker: backend_net]
+        direction TB
+        Web_API[web_api - Porta 8080<br/>Node.js / API Gateway]
+        IAM_API[iam_api - Interna<br/>Serviço de Autenticação]
+        DB_Ementas[(db_ementas<br/>MariaDB - Negócio)]
+        DB_IAM[(db_iam<br/>MariaDB - Segurança)]
+    end
+
+    subgraph Administration [Gestão de Infraestrutura]
+        PMA[phpMyAdmin - Porta 8081]
+        Portainer[Portainer - Porta 9000]
+    end
+
+    %% Comunicações Externas (Browser para Contentores)
+    Browser -->|HTTP 8080| Web_API
+    Browser -->|HTTP 8081| PMA
+    Browser -->|HTTP 9000| Portainer
+
+    %% Comunicações Internas (Entre Contentores)
+    Web_API -->|Proxy Auth / Pedir Token| IAM_API
+    Web_API -->|Queries SQL| DB_Ementas
+    IAM_API -->|Verificação de Credenciais| DB_IAM
+
+    %% Comunicações de Gestão ( phpMyAdmin para BDs)
+    PMA -.->|Acesso e Gestão Remota| DB_Ementas
+    PMA -.->|Acesso e Gestão Remota| DB_IAM
+```
+
+---
+
+## 2. Descrição dos Componentes
+
+O sistema é dividido nos seguintes serviços, conforme definido no ficheiro `docker-compose.yaml`:
+
+1.  **web_api (Contentor 1):** Atua como o ponto de entrada único (API Gateway). Gere a interface pública, o painel de administração (Back-Office) e processa a lógica de negócio das ementas.
+2.  **iam_api (Contentor 3 - Lógica):** Microserviço de Identidade e Acesso (IAM). É responsável pela validação de credenciais e emissão de JSON Web Tokens (JWT). Por segurança, não expõe portas ao exterior da rede Docker.
+3.  **db_ementas (Contentor 2):** Base de dados MariaDB dedicada ao armazenamento de pratos, alérgenos e ementas. Utiliza chaves estrangeiras com `ON DELETE CASCADE` para garantir integridade referencial.
+4.  **db_iam (Contentor 3 - Dados):** Base de dados isolada para credenciais de utilizadores. A separação física desta base de dados garante que uma potencial vulnerabilidade no domínio de negócio não comprometa os dados de autenticação.
+5.  **phpMyAdmin:** Ferramenta de administração de bases de dados via web, configurada para aceder a ambos os servidores de BD (`db_ementas` e `db_iam`).
+6.  **Portainer:** Interface de gestão de contentores para monitorização de recursos, logs em tempo real e estado da infraestrutura.
+
+---
+
+## 3. Implementação Técnica e Segurança
+
+### Autenticação e Autorização
+O sistema utiliza **JWT (JSON Web Tokens)** para proteger as rotas de administração. Quando um utilizador faz login, a `iam_api` gera um token assinado. Este token deve ser enviado no cabeçalho `Authorization: Bearer <token>` em todas as operações de escrita (Create, Update, Delete).
+
+### Persistência e Integridade
+* **Volumes:** Foram configurados volumes Docker para garantir que os dados das bases de dados e as configurações do Portainer persistam mesmo após a remoção ou atualização dos contentores.
+* **Transações ACID:** A criação de ementas complexas utiliza transações SQL para garantir que a associação entre o dia da semana e os múltiplos pratos seja atómica — ou o registo é gravado na totalidade, ou a operação sofre *rollback*.
+
+---
+
+## 4. Guia de Instalação e Execução
+
+### Requisitos de Ambiente
+* Docker e Docker Compose instalados.
+* **Nota para WSL 2:** Recomenda-se vivamente que o projeto seja executado a partir do sistema de ficheiros nativo do Linux (ex: `/home/utilizador/tp2_cloud/`) para evitar latência de I/O e problemas de permissões de ficheiros.
+
+### Execução do Projeto
+1.  No terminal, aceda à pasta raiz do projeto.
+2.  Inicie a infraestrutura com o comando:
+    ```bash
+    docker compose up --build -d
+    ```
+3.  Aguarde até que todos os contentores apresentem o estado `Started` ou `Healthy`.
+
+---
+
+## 5. Acesso e Credenciais de Desenvolvimento
+
+Após a inicialização, os serviços estarão disponíveis nos seguintes endereços locais:
+
+* **Front-end & API Principal:** [http://localhost:8080](http://localhost:8080)
+* **phpMyAdmin (Gestão de Dados):** [http://localhost:8081](http://localhost:8081)
+* **Portainer (Monitorização):** [http://localhost:9000](http://localhost:9000)
+
+### Credenciais de Teste
+O sistema é inicializado automaticamente com os seguintes acessos:
+
+| Serviço | Utilizador | Palavra-passe | Host/Servidor (PMA) |
+| :--- | :--- | :--- | :--- |
+| **Painel Admin App** | `admin` | `admin` | N/A |
+| **Base de Dados** | `admin` | `admin` | `db_ementas` ou `db_iam` |
+| **BD Root** | `root` | `admin` | N/A |
+
+---
+**Alunos:** Afonso Figueiredo (a79309), Tomás Anastácio (a79301)  
